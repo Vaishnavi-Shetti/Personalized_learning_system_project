@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db } from "../firebase";
+import { collection, addDoc } from 'firebase/firestore';
 
 function Questionnaire() {
   const navigate = useNavigate();
@@ -25,18 +27,25 @@ function Questionnaire() {
     );
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (selectedTopics.length === 0) {
       alert('Please select at least one interest.');
       return;
     }
 
-    console.log('Selected Interests:', selectedTopics);
-
-    // TODO: Send selectedTopics to backend here
-
-    navigate('/recommendations');
+    try {
+      await addDoc(collection(db, 'userPreferences'), {
+        topics: selectedTopics,
+        timestamp: new Date()
+      });
+      console.log('Saved to Firestore:', selectedTopics);
+      navigate('/recommendations');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      alert('Failed to save preferences. Try again.');
+    }
   };
 
   return (
