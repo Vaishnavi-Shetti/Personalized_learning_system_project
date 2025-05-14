@@ -1,0 +1,21 @@
+.hero-container {
+  margin-top: 4rem;
+}
+
+.hero-image {
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.hero-heading {
+  font-weight: bold;
+}
+
+.hero-description {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+}
+
+.hero-button {
+  margin-top: 1.5rem;
+}

@@ -1,0 +1,26 @@
+.signin-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f3f7fb;
+}
+
+.signin-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.signin-title {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.signin-btn {
+  margin-top: 1rem;
+}
