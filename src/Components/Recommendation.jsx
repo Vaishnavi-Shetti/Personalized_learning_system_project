@@ -1,93 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import React from "react";
+import { useLocation } from "react-router-dom";
+import videoData from "../data/videoData";
 
-const Recommendation = () => {
-  const [videos, setVideos] = useState([]);
-  const [loading, setLoading] = useState(true);
+function Recommendation() {
+  const location = useLocation();
+  const selectedTopics = location.state?.selectedTopics || [];
 
-  const getUserPreferences = async () => {
-    const prefsSnapshot = await getDocs(collection(db, 'userPreferences'));
-    if (!prefsSnapshot.empty) {
-      const lastPref = prefsSnapshot.docs[prefsSnapshot.docs.length - 1].data();
-      return lastPref.topics || [];
+  // Function to convert regular YouTube URL to embed URL
+  const convertToEmbedUrl = (url) => {
+    if (!url) return "";
+    // Check if the URL is a YouTube URL
+    const regex = /(?:https?:\/\/(?:www\.)?youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{11})/;
+    const match = url.match(regex);
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}`;
     }
-    return [];
+    return url; // Return the original URL, if it is not the valid youtube URL
   };
-
-  const fetchVideos = async () => {
-    try {
-      setLoading(true);
-
-      const userInterests = await getUserPreferences();
-
-      if (userInterests.length === 0) {
-        setVideos([]);
-        setLoading(false);
-        return;
-      }
-
-      const videosSnapshot = await getDocs(collection(db, 'videos'));
-      const allVideos = videosSnapshot.docs.map((doc) => doc.data());
-
-      // Content-Based Filtering (simple: match tags)
-      const matched = allVideos.filter((video) =>
-        Array.isArray(video.tags) &&
-        video.tags.some((tag) => userInterests.includes(tag))
-
-      );
-
-      setVideos(matched);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching videos:', error);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchVideos();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="text-center mt-5">
-        <div className="spinner-border text-primary" role="status"></div>
-        <p className="mt-3">Loading recommendations...</p>
-      </div>
-    );
-  }
-
-  if (videos.length === 0) {
-    return <p className="text-center mt-5">No videos match your interests.</p>;
-  }
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-center mb-4">Recommended Videos for You</h2>
-      <div className="row">
-        {videos.map((video, index) => (
-          <div className="col-md-6 mb-4" key={index}>
-            <div className="card h-100 shadow">
-              <div className="ratio ratio-16x9">
-                <iframe
-                  src={video.url}
-                  title={video.title}
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <div className="card-body">
-                <h5 className="card-title">{video.title}</h5>
-                <p className="card-text">
-                  Tags: {video.tags.join(', ')}
-                </p>
-              </div>
+    <div>
+      <h1>Recommended Videos</h1>
+      <div>
+        {videoData
+          .filter((video) =>
+            selectedTopics.includes(video.topic)
+          )
+          .map((video) => (
+            <div key={video.id} className="video-card">
+              <h3>{video.title}</h3>
+              <p>{video.topic}</p>
+              {/* Convert video URL to embed format, so that the video is displed on our website itself */}
+              <iframe
+                width="560"
+                height="315"
+                src={convertToEmbedUrl(video.url)} // coneverting to embed format
+                //frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={video.title}
+              ></iframe>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );
-};
+}
 
 export default Recommendation;
