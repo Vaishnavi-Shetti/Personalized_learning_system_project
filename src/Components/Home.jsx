@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import heroImage from '../assets/heroImage.png';
 import Navbar from './Navbar.jsx';
-import './Home.css'; // ✅ Import your styles here
+import './Home.css'; 
 
 function Home() {
   const navigate = useNavigate();
