@@ -41,7 +41,7 @@ function Questionnaire() {
         timestamp: new Date()
       });
       console.log('Saved to Firestore:', selectedTopics);
-      navigate('/recommendations');
+      navigate('/recommendation');
     } catch (error) {
       console.error('Error saving preferences:', error);
       alert('Failed to save preferences. Try again.');
