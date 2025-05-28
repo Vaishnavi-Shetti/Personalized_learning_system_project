@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from "../firebase";
+import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import './Questionnaire.css';
 
 function Questionnaire() {
   const navigate = useNavigate();
+
   const [selectedTopics, setSelectedTopics] = useState([]);
+  const [skillLevel, setSkillLevel] = useState('');
+  const [contentType, setContentType] = useState('');
+  const [languages, setLanguages] = useState([]);
 
   const topics = [
     'Web Development',
@@ -18,7 +23,19 @@ function Questionnaire() {
     'Game Development',
   ];
 
-  const handleChange = (e) => {
+  const programmingLanguages = [
+    'Python',
+    'JavaScript',
+    'Java',
+    'C++',
+    'C#',
+    'PHP',
+    'TypeScript',
+    'Kotlin',
+    'Dart',
+  ];
+
+  const handleTopicChange = (e) => {
     const value = e.target.value;
     setSelectedTopics((prev) =>
       prev.includes(value)
@@ -27,23 +44,35 @@ function Questionnaire() {
     );
   };
 
+  const handleLanguageChange = (e) => {
+    const value = e.target.value;
+    setLanguages((prev) =>
+      prev.includes(value)
+        ? prev.filter((lang) => lang !== value)
+        : [...prev, value]
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (selectedTopics.length === 0) {
-      alert('Please select at least one interest.');
+    if (selectedTopics.length === 0 || !skillLevel || !contentType) {
+      alert('Please fill in all fields.');
       return;
     }
 
-    try {
-      await addDoc(collection(db, 'userPreferences'), {
-        topics: selectedTopics,
-        timestamp: new Date()
-      });
-      console.log('Saved to Firestore:', selectedTopics);
-      //navigate('/recommendations');
-      navigate('/recommendations', { state: { selectedTopics } });
+    const data = {
+      topics: selectedTopics,
+      skillLevel,
+      contentType,
+      languages,
+      timestamp: new Date(),
+    };
 
+    try {
+      await addDoc(collection(db, 'userPreferences'), data);
+      console.log('Saved to Firestore:', data);
+      navigate('/recommendations', { state: { selectedTopics, skillLevel, contentType, languages } });
     } catch (error) {
       console.error('Error saving preferences:', error);
       alert('Failed to save preferences. Try again.');
@@ -51,26 +80,77 @@ function Questionnaire() {
   };
 
   return (
-    <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div className="card shadow p-4" style={{ width: '100%', maxWidth: '500px' }}>
-        <h3 className="text-center mb-4">What are your interests?</h3>
+      <div className="container">
+        <div className="questionnaire-card">
+        <h3 className="text-center mb-4">Tell Us About Your Learning Preferences</h3>
         <form onSubmit={handleSubmit}>
+          <strong>1. Interests:</strong>
           {topics.map((topic, index) => (
             <div className="form-check mb-2" key={index}>
               <input
                 className="form-check-input"
                 type="checkbox"
                 value={topic}
-                id={`check-${index}`}
-                onChange={handleChange}
+                id={`topic-${index}`}
+                onChange={handleTopicChange}
               />
-              <label className="form-check-label" htmlFor={`check-${index}`}>
+              <label className="form-check-label" htmlFor={`topic-${index}`}>
                 {topic}
               </label>
             </div>
           ))}
 
-          <button type="submit" className="btn btn-primary w-100 mt-3">
+          <strong className="mt-3 d-block">2. Skill Level:</strong>
+          {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
+            <div className="form-check" key={level}>
+              <input
+                className="form-check-input"
+                type="radio"
+                name="skillLevel"
+                value={level}
+                onChange={(e) => setSkillLevel(e.target.value)}
+                id={`skill-${level}`}
+              />
+              <label className="form-check-label" htmlFor={`skill-${level}`}>
+                {level}
+              </label>
+            </div>
+          ))}
+
+          <strong className="mt-3 d-block">3. Preferred Content Type:</strong>
+          {['Projects', 'Tutorials', 'Conceptual Videos'].map((type) => (
+            <div className="form-check" key={type}>
+              <input
+                className="form-check-input"
+                type="radio"
+                name="contentType"
+                value={type}
+                onChange={(e) => setContentType(e.target.value)}
+                id={`content-${type}`}
+              />
+              <label className="form-check-label" htmlFor={`content-${type}`}>
+                {type}
+              </label>
+            </div>
+          ))}
+
+          <strong className="mt-3 d-block">4. Preferred Programming Languages:</strong>
+          {programmingLanguages.map((lang, index) => (
+            <div className="form-check mb-1" key={index}>
+              <input
+                className="form-check-input"
+                type="checkbox"
+                value={lang}
+                id={`lang-${index}`}
+                onChange={handleLanguageChange}
+              />
+              <label className="form-check-label" htmlFor={`lang-${index}`}>
+                {lang}
+              </label>
+            </div>
+          ))}
+
+          <button type="submit" className="btn btn-primary w-100 mt-4">
             Get Recommendations
           </button>
         </form>
