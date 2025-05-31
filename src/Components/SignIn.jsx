@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import './SignIn.jsx';
-// Then replace:
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
+const SignIn = () => {
+  const navigate = useNavigate();
 
-function SignIn() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Signed in!\nEmail: ${email}\nPassword: ${password}`);
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      console.log("User Signed In:", userCredential.user);
+      navigate("/questionnaire");
+    } catch (error) {
+      console.error("Sign In Error:", error.message);
+      alert(error.message);
+    }
   };
 
   return (
@@ -22,10 +41,11 @@ function SignIn() {
             <label className="form-label">Email address</label>
             <input
               type="email"
+              name="email"
               className="form-control"
               placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
               required
             />
           </div>
@@ -34,10 +54,11 @@ function SignIn() {
             <label className="form-label">Password</label>
             <input
               type="password"
+              name="password"
               className="form-control"
               placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
               required
             />
           </div>
@@ -55,6 +76,6 @@ function SignIn() {
       </div>
     </div>
   );
-}
+};
 
 export default SignIn;

@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-function Registration() {
-  const navigate = useNavigate(); // ✅ Step 1: useNavigate hook
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+
+const Registration = () => {
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
+    name: "",
+    email: "",
+    password: "",
+    
   });
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Step 2: Process registration (e.g., send to backend here)
+   
 
-    console.log('User Registered:', formData);
-
-    // ✅ Step 3: Navigate to questionnaire
-    navigate('/questionnaire');
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      console.log("User Registered:", userCredential.user);
+      navigate("/questionnaire");
+    } catch (error) {
+      console.error("Registration Error:", error.message);
+      alert(error.message);
+    }
   };
 
   return (
@@ -71,6 +80,8 @@ function Registration() {
               required
             />
           </div>
+
+          {/* Confirm Password input is still rendered here, but not controlled by state or checked */}
 
           <button type="submit" className="btn btn-success w-100 mb-2">
             Register
