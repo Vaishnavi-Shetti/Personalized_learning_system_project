@@ -25,7 +25,7 @@ const SignIn = () => {
         formData.password
       );
       console.log("User Signed In:", userCredential.user);
-      navigate("/questionnaire");
+      navigate("/recommendations");
     } catch (error) {
       console.error("Sign In Error:", error.message);
       alert(error.message);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import './Questionnaire.css';
 
 function Questionnaire() {
@@ -66,22 +66,23 @@ function Questionnaire() {
       skillLevel,
       contentType,
       languages,
-      timestamp: new Date(),
+      timestamp: Timestamp.now(),
     };
 
     try {
-      await addDoc(collection(db, 'userPreferences'), data);
+      console.log("Form Data Being Submitted:", data);
+      await addDoc(collection(db, 'userData'), data);
       console.log('Saved to Firestore:', data);
       navigate('/recommendations', { state: { selectedTopics, skillLevel, contentType, languages } });
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      console.error('Error saving preferences:', error.message, error);
       alert('Failed to save preferences. Try again.');
     }
   };
 
   return (
-      <div className="container">
-        <div className="questionnaire-card">
+    <div className="container">
+      <div className="questionnaire-card">
         <h3 className="text-center mb-4">Tell Us About Your Learning Preferences</h3>
         <form onSubmit={handleSubmit}>
           <strong>1. Interests:</strong>
