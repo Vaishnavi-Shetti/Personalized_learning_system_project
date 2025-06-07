@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase"; // ✅ Import db
+import { doc, setDoc } from "firebase/firestore"; // ✅ Import Firestore functions
 
 const Registration = () => {
   const navigate = useNavigate();
@@ -10,7 +11,6 @@ const Registration = () => {
     name: "",
     email: "",
     password: "",
-    
   });
 
   const handleChange = (e) => {
@@ -20,16 +20,25 @@ const Registration = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-   
-
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
-      console.log("User Registered:", userCredential.user);
+
+      const user = userCredential.user;
+
+      // ✅ Save name and email to Firestore under userData collection
+      await setDoc(doc(db, 'userData', user.uid), {
+        name: formData.name,
+        email: formData.email,
+        registrationTimestamp: new Date(), // optional: store registration time
+      });
+
+      console.log("User Registered & Info Saved:", user.uid);
       navigate("/questionnaire");
+
     } catch (error) {
       console.error("Registration Error:", error.message);
       alert(error.message);
@@ -80,8 +89,6 @@ const Registration = () => {
             />
           </div>
 
-          {/* Check whether the Password input is still rendered here, but not controlled by state or checked */}
-
           <button type="submit" className="btn btn-success w-100 mb-2">
             Register
           </button>
@@ -95,6 +102,6 @@ const Registration = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Registration;

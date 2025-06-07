@@ -169,7 +169,31 @@ const Recommendation = () => {
 
   return (
     <div className="container my-4">
-      {/* Recommended Videos Title */}
+      {/* ✅ Fixed Go to Profile Button */}
+      <div
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          zIndex: 1000,
+        }}
+      >
+        <button
+          onClick={() => window.location.href = "/UserProfile"}
+          style={{
+            backgroundColor: "#28a745",
+            color: "#fff",
+            padding: "10px 16px",
+            borderRadius: "6px",
+            border: "none",
+            fontWeight: "bold",
+            cursor: "pointer",
+          }}
+        >
+          Go to Profile
+        </button>
+      </div>
+
       <h2
         style={{
           textAlign: "center",
@@ -181,7 +205,6 @@ const Recommendation = () => {
         Recommended Videos For You
       </h2>
 
-      {/* Recommended Videos */}
       <div
         className="recommended-videos"
         style={{
@@ -247,10 +270,8 @@ const Recommendation = () => {
         )}
       </div>
 
-      {/* Horizontal Line betwenn recommended videos and the collaboarative related videos*/}
       <hr style={{ borderTop: "2px solid #ccc", margin: "40px 0" }} />
 
-      {/* Collaborative Videos Title  */}
       <h3
         style={{
           textAlign: "center",
@@ -261,7 +282,6 @@ const Recommendation = () => {
         Videos Watched by Users with Similar Interests
       </h3>
 
-      {/* Collaborative Videos  */}
       <div
         className="collaborative-videos"
         style={{
@@ -330,9 +350,3 @@ const Recommendation = () => {
 };
 
 export default Recommendation;
-
-
-
-
-
-

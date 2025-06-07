@@ -79,7 +79,7 @@ function Questionnaire() {
     };
 
     try {
-      await setDoc(doc(db, 'userData', user.uid), data); //Save with user id
+      await setDoc(doc(db, 'userData', user.uid), data, { merge: true }); //Save with user id
       console.log('Saved to Firestore:', data);
 
       // Navigate to recommendations 
