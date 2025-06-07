@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { db, auth } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import './UserProfile.css';
 
 const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -40,8 +41,8 @@ const UserProfile = () => {
   if (!user) return <p>Loading user data...</p>;
 
   return (
-    <div className="container py-4">
-      <h2 className="mb-4 text-center">👤 User Profile</h2>
+  <div className="profile-container">
+    <h2 className="profile-header">👤 User Profile</h2>
       <div className="card p-4 mb-5 shadow">
         <h4>📝 Registration Info</h4>
         {userData ? (
@@ -65,25 +66,26 @@ const UserProfile = () => {
         ) : (
           <div className="row">
             {watchedVideos.map((video) => (
-              <div key={video.id} className="col-md-6 mb-4">
-                <div className="card">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
-                    title={video.title}
-                    allowFullScreen
-                    style={{ width: "100%", height: "200px", border: "none" }}
-                  ></iframe>
-                  <div className="card-body">
-                    <h5 className="card-title">{video.title}</h5>
-                    <p className="card-text">
-                      Topic: {video.topic} <br />
-                      Duration: {video.duration} <br />
-                      Likes: {video.likes} | Views: {video.views}
-                    </p>
-                  </div>
-                </div>
+          <div key={video.id} className="col-md-6 mb-4 video-card">
+            <div className="card">
+              <iframe
+                className="video-iframe"
+                src={`https://www.youtube.com/embed/${video.id}`}
+                title={video.title}
+                allowFullScreen
+              ></iframe>
+              <div className="card-body">
+                <h5 className="card-title">{video.title}</h5>
+                <p className="card-text">
+                  Topic: {video.topic} <br />
+                  Duration: {video.duration} <br />
+                  Likes: {video.likes} | Views: {video.views}
+                </p>
               </div>
-            ))}
+            </div>
+          </div>
+        ))}
+
           </div>
         )}
       </div>
