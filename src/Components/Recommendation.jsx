@@ -1,348 +1,338 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../firebase";
-import {
-  collection,
-  getDocs,
-  getDoc,
-  doc,
-  updateDoc,
-  arrayUnion,
-  setDoc,
-} from "firebase/firestore";
 
-const trustedChannelIds = [
-  "UCeVMnSShP_Iviwkknt83cww",
-  "UCWv7vMbMWH4-V0ZXdmDpPBA",
-  "UC8butISFwT-Wl7EV0hUK0BQ",
-  "UCxX9wt5FWQUAAz4UrysqK9A",
-  "UCVYamHliCI9rw1tHR1xbkfw",
-  "UCQYMhOMi_Cdj1CEAU-fv80A",
-  "UC4SVo0Ue36XCfOyb5Lh1viQ",
-  "UCzuaYxY3ULt0CGu41Z4UNPQ",
-  "UCYO_jab_esuFRV4b17AJtAw",
-  "UCvjgXvBlbQiydffZU7m1_aw",
-  "UCsBjURrPoezykLs9EqgamOA",
-  "UC29ju8bIPH5as8OGnQzwJyA",
-  "UCBwmMxybNva6P_5VmxjzwqA",
-  "UC4xKdmAXFh4ACyhpiQ_3qBw",
-];
+function getUserInterestArray(userData) {
+  if (!userData) return [];
 
-// ✅ Replace with your valid API key
-const API_KEY = "AIzaSyCQ_yQweed2qQmD69hlHoceMleHzhef0fs";
+  let interests = [];
 
-function Recommendation() {
-  const location = useLocation();
-  const initialTopics = location.state?.selectedTopics || [];
-  const skillLevel = location.state?.skillLevel || "Beginner";
-  const contentType = location.state?.contentType || "Tutorials";
-  const selectedLanguages = location.state?.selectedLanguages || [];
+  if (userData.contentType) interests.push(userData.contentType.toLowerCase());
+  if (Array.isArray(userData.languages))
+    interests = interests.concat(userData.languages.map((l) => l.toLowerCase()));
+  if (userData.skillLevel) interests.push(userData.skillLevel.toLowerCase());
+  if (Array.isArray(userData.topics))
+    interests = interests.concat(userData.topics.map((t) => t.toLowerCase()));
 
-  const [selectedTopics, setSelectedTopics] = useState(initialTopics);
-  const [videoData, setVideoData] = useState([]);
+  return [...new Set(interests)];
+}
+
+const Recommendation = () => {
+  const [user, setUser] = useState(null);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  const [watchedVideosData, setWatchedVideosData] = useState([]);
+  const [allUsersData, setAllUsersData] = useState([]);
+  const [recommendedVideos, setRecommendedVideos] = useState([]);
   const [collaborativeVideos, setCollaborativeVideos] = useState([]);
-  const [watchedVideoIds, setWatchedVideoIds] = useState(new Set());
-  const [currentUser, setCurrentUser] = useState(null);
-
-  const loadWatchedVideos = async (userId) => {
-    try {
-      const watchedDocRef = doc(db, "watchedVideos", userId);
-      const docSnap = await getDoc(watchedDocRef);
-      if (docSnap.exists()) {
-        const videos = docSnap.data().videos || [];
-        setWatchedVideoIds(new Set(videos.map((v) => v.id)));
-      } else {
-        setWatchedVideoIds(new Set());
-      }
-    } catch (error) {
-      console.error("Error loading watched videos:", error);
-    }
-  };
-
-  const saveWatchedVideo = async (video) => {
-    if (!currentUser || watchedVideoIds.has(video.id)) return;
-
-    const watchedDocRef = doc(db, "watchedVideos", currentUser.uid);
-
-    try {
-      const docSnap = await getDoc(watchedDocRef);
-
-      if (docSnap.exists()) {
-        const existingVideos = docSnap.data().videos || [];
-        const alreadySaved = existingVideos.some((v) => v.id === video.id);
-        if (!alreadySaved) {
-          await updateDoc(watchedDocRef, {
-            videos: arrayUnion(video),
-          });
-          setWatchedVideoIds((prev) => new Set(prev).add(video.id));
-        }
-      } else {
-        await setDoc(watchedDocRef, {
-          videos: [video],
-        });
-        setWatchedVideoIds(new Set([video.id]));
-      }
-    } catch (error) {
-      console.error("Error saving watched video:", error);
-    }
-  };
-
-  const fetchVideosByQueries = async (queries) => {
-    const fetchedVideos = new Map();
-
-    for (const query of queries) {
-      const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-        query
-      )}&type=video&maxResults=5&key=${API_KEY}`;
-
-      try {
-        const searchRes = await fetch(searchUrl);
-        if (!searchRes.ok) {
-          console.error(`Search API request failed with status ${searchRes.status}`);
-          continue;
-        }
-
-        const searchData = await searchRes.json();
-
-        if (searchData.items) {
-          const videoIds = searchData.items
-            .map((item) => item.id.videoId)
-            .join(",");
-          if (!videoIds) continue;
-
-          const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${videoIds}&key=${API_KEY}`;
-          const detailsRes = await fetch(detailsUrl);
-          const detailsData = await detailsRes.json();
-
-          // ✅ FIXED THIS PART:
-          const filteredVideos = (detailsData.items || [])
-            .filter(
-              (item) =>
-                item.statistics &&
-                item.contentDetails &&
-                trustedChannelIds.includes(item.snippet.channelId)
-            )
-            .sort(
-              (a, b) =>
-                parseInt(b.statistics.viewCount || "0") -
-                parseInt(a.statistics.viewCount || "0")
-            )
-            .slice(0, 3);
-
-          filteredVideos.forEach((video) => {
-            if (!fetchedVideos.has(video.id)) {
-              fetchedVideos.set(video.id, {
-                id: video.id,
-                title: video.snippet.title,
-                topic: query,
-                url: `https://www.youtube.com/watch?v=${video.id}`,
-                views: video.statistics.viewCount,
-                likes: video.statistics.likeCount || "N/A",
-                duration: video.contentDetails.duration,
-              });
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching video:", error);
-      }
-    }
-    return Array.from(fetchedVideos.values());
-  };
-
-  const fetchVideos = async () => {
-    if (!currentUser) return;
-
-    try {
-      const userSnap = await getDoc(doc(db, "userData", currentUser.uid));
-      if (!userSnap.exists()) return;
-
-      const userData = userSnap.data();
-      const userTopics = userData.topics || [];
-      const userLanguages = userData.languages || [];
-      const userSkillLevel = userData.skillLevel || "Beginner";
-      const userContentType = userData.contentType || "Tutorials";
-
-      let userQueries = [];
-      userTopics.forEach((topic) => {
-        userQueries.push(`${topic} ${userSkillLevel} ${userContentType}`);
-        userLanguages.forEach((lang) => {
-          userQueries.push(`${topic} ${lang} ${userContentType}`);
-        });
-      });
-
-      const userVideos = await fetchVideosByQueries(userQueries);
-      setVideoData(userVideos);
-
-      const allUsersSnap = await getDocs(collection(db, "userData"));
-      const currentPrefs = new Set([...userTopics, ...userLanguages]);
-      const collabVideosMap = new Map();
-
-      for (const docSnap of allUsersSnap.docs) {
-        if (docSnap.id === currentUser.uid) continue;
-
-        const otherUserData = docSnap.data();
-        const otherTopics = otherUserData.topics || [];
-        const otherLanguages = otherUserData.languages || [];
-        const otherPrefs = new Set([...otherTopics, ...otherLanguages]);
-
-        const commonPrefs = [...currentPrefs].filter((pref) =>
-          otherPrefs.has(pref)
-        );
-
-        if (
-          commonPrefs.length >=
-          Math.min(currentPrefs.size, otherPrefs.size) / 2
-        ) {
-          let collabQueries = [];
-          otherTopics.forEach((topic) => {
-            collabQueries.push(
-              `${topic} ${userSkillLevel} ${userContentType}`
-            );
-            otherLanguages.forEach((lang) => {
-              collabQueries.push(`${topic} ${lang} ${userContentType}`);
-            });
-          });
-
-          const videos = await fetchVideosByQueries(collabQueries);
-          videos.forEach((video) => {
-            if (!collabVideosMap.has(video.id) && !watchedVideoIds.has(video.id)) {
-              collabVideosMap.set(video.id, video);
-            }
-          });
-        }
-      }
-
-      setCollaborativeVideos(Array.from(collabVideosMap.values()));
-    } catch (error) {
-      console.error("Error fetching videos:", error);
-    }
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-        loadWatchedVideos(user.uid);
-        fetchVideos();
-      } else {
-        setCurrentUser(null);
-        setVideoData([]);
-        setCollaborativeVideos([]);
-        setWatchedVideoIds(new Set());
-      }
+    const unsubscribe = onAuthStateChanged(auth, (usr) => {
+      if (usr) setUser(usr);
+      else setUser(null);
     });
-
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (currentUser) {
-      fetchVideos();
-    }
-  }, [watchedVideoIds]);
+    if (!user) return;
 
-  const groupVideosByTopic = (videos) => {
-    const grouped = {};
-    videos.forEach((video) => {
-      if (!grouped[video.topic]) {
-        grouped[video.topic] = [];
-      }
-      grouped[video.topic].push(video);
-    });
-    return grouped;
+    const fetchCurrentUserData = async () => {
+      const docRef = doc(db, "userData", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) setCurrentUserData(docSnap.data());
+      else setCurrentUserData(null);
+    };
+
+    fetchCurrentUserData();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchAllUsers = async () => {
+      const usersSnapshot = await getDocs(collection(db, "userData"));
+      const usersArr = [];
+      usersSnapshot.forEach((doc) => {
+        if (doc.id !== user.uid) {
+          usersArr.push({ id: doc.id, ...doc.data() });
+        }
+      });
+      setAllUsersData(usersArr);
+    };
+
+    fetchAllUsers();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchWatchedVideos = async () => {
+      const watchedVideosSnapshot = await getDocs(collection(db, "watchedVideos"));
+      const videosArr = [];
+      watchedVideosSnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.videos && Array.isArray(data.videos)) {
+          videosArr.push({ userId: doc.id, videos: data.videos });
+        }
+      });
+      setWatchedVideosData(videosArr);
+      setLoading(false);
+    };
+
+    fetchWatchedVideos();
+  }, [user]);
+
+  const getVideosForUser = (userId) => {
+    const userVideosObj = watchedVideosData.find((entry) => entry.userId === userId);
+    if (userVideosObj && Array.isArray(userVideosObj.videos)) return userVideosObj.videos;
+    return [];
   };
 
-  const renderVideo = (video) => (
-    <div
-      key={video.id}
-      style={{
-        width: "500px",
-        backgroundColor: "#f9f9f9",
-        borderRadius: "8px",
-        padding: "15px",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        cursor: "pointer",
-      }}
-    >
-      <h3 style={{ fontSize: "16px", textAlign: "center" }}>{video.title}</h3>
-      <iframe
-        width="450"
-        height="250"
-        src={`https://www.youtube.com/embed/${video.id}`}
-        title={video.title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        onLoad={() => saveWatchedVideo(video)}
-        style={{ borderRadius: "8px", marginTop: "10px" }}
-      ></iframe>
-    </div>
-  );
+  useEffect(() => {
+    if (!currentUserData || !watchedVideosData.length || !allUsersData.length) return;
+
+    const currentUserInterests = getUserInterestArray(currentUserData);
+    const currentUserVideos = getVideosForUser(user.uid);
+    const currentUserWatchedIds = currentUserVideos.map((v) => v.id);
+
+    const similarUsers = allUsersData.filter((otherUser) => {
+      const otherInterests = getUserInterestArray(otherUser);
+      const intersection = otherInterests.filter((i) => currentUserInterests.includes(i));
+      const union = [...new Set([...currentUserInterests, ...otherInterests])];
+      const similarity = union.length > 0 ? intersection.length / union.length : 0;
+      return similarity >= 0.3;
+    });
+
+    let collabVideosMap = new Map();
+    similarUsers.forEach((simUser) => {
+      const simUserVideos = getVideosForUser(simUser.id);
+      simUserVideos.forEach((video) => {
+        if (!currentUserWatchedIds.includes(video.id)) {
+          if (!collabVideosMap.has(video.id)) {
+            collabVideosMap.set(video.id, video);
+          }
+        }
+      });
+    });
+
+    let allVideosFlat = [];
+    watchedVideosData.forEach((entry) => {
+      if (Array.isArray(entry.videos)) {
+        allVideosFlat = allVideosFlat.concat(entry.videos);
+      }
+    });
+
+    const uniqueVideosMap = new Map();
+    allVideosFlat.forEach((vid) => {
+      if (!uniqueVideosMap.has(vid.id)) uniqueVideosMap.set(vid.id, vid);
+    });
+    const uniqueVideos = Array.from(uniqueVideosMap.values());
+
+    const contentBasedVideos = uniqueVideos.filter((vid) => {
+      const videoText = `${vid.title} ${vid.topic}`.toLowerCase();
+      return currentUserInterests.some((interest) => videoText.includes(interest));
+    });
+
+    const contentBasedFiltered = contentBasedVideos.filter(
+      (vid) => !currentUserWatchedIds.includes(vid.id)
+    );
+
+    const combinedRecommendationsMap = new Map();
+
+    collabVideosMap.forEach((vid) => {
+      combinedRecommendationsMap.set(vid.id, vid);
+    });
+    contentBasedFiltered.forEach((vid) => {
+      if (!combinedRecommendationsMap.has(vid.id)) {
+        combinedRecommendationsMap.set(vid.id, vid);
+      }
+    });
+
+    const combinedRecommendations = Array.from(combinedRecommendationsMap.values());
+
+    setRecommendedVideos(combinedRecommendations);
+
+    const recommendedIdsSet = new Set(combinedRecommendations.map((vid) => vid.id));
+    const collabOnlyVideos = Array.from(collabVideosMap.values()).filter(
+      (vid) => !recommendedIdsSet.has(vid.id)
+    );
+
+    setCollaborativeVideos(collabOnlyVideos);
+  }, [currentUserData, watchedVideosData, allUsersData, user]);
+
+  if (loading) return <div>Loading recommendations...</div>;
+  if (!user) return <div>Please log in to see recommendations.</div>;
+  if (!currentUserData)
+    return <div>Please complete your questionnaire to get personalized recommendations.</div>;
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "30px" }}>
-        Recommended Videos
-      </h1>
+    <div className="container my-4">
+      {/* Recommended Videos Title */}
+      <h2
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+          marginTop: "0",
+          fontWeight: "bold",
+        }}
+      >
+        Recommended Videos For You
+      </h2>
 
-      {videoData.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#888" }}>
-          No videos found for your preferences.
-        </p>
-      ) : (
-        Object.entries(groupVideosByTopic(videoData)).map(([topic, videos]) => (
-          <div key={topic} style={{ marginBottom: "40px" }}>
-            <h2 style={{ marginBottom: "15px", color: "#333" }}>{topic}</h2>
+      {/* Recommended Videos */}
+      <div
+        className="recommended-videos"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "20px",
+          marginBottom: "40px",
+        }}
+      >
+        {recommendedVideos.length === 0 ? (
+          <p style={{ textAlign: "center", width: "100%" }}>
+            No recommendations available at this time.
+          </p>
+        ) : (
+          recommendedVideos.map((video) => (
             <div
+              key={video.id}
               style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "25px",
-                justifyContent: "flex-start",
+                width: "320px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                borderRadius: "8px",
+                overflow: "hidden",
               }}
             >
-              {videos.map((video) => renderVideo(video))}
-            </div>
-          </div>
-        ))
-      )}
-
-      <h1
-        style={{ textAlign: "center", marginTop: "60px", marginBottom: "30px" }}
-      >
-        Other Users' Interests
-      </h1>
-
-      {collaborativeVideos.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#888" }}>
-          No collaborative videos found.
-        </p>
-      ) : (
-        Object.entries(groupVideosByTopic(collaborativeVideos)).map(
-          ([topic, videos]) => (
-            <div key={topic} style={{ marginBottom: "40px" }}>
-              <h2 style={{ marginBottom: "15px", color: "#666" }}>{topic}</h2>
               <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "25px",
-                  justifyContent: "flex-start",
-                }}
+                style={{ cursor: "pointer", aspectRatio: "16 / 9" }}
+                onClick={() => window.open(video.url, "_blank")}
               >
-                {videos.map((video) => renderVideo(video))}
+                <iframe
+                  src={`https://www.youtube.com/embed/${video.id}`}
+                  title={video.title}
+                  allowFullScreen
+                  style={{ width: "100%", height: "180px", border: "none" }}
+                ></iframe>
+              </div>
+              <div style={{ padding: "12px" }}>
+                <h5 style={{ margin: "0 0 8px 0" }}>{video.title}</h5>
+                <p style={{ margin: "0 0 8px 0", fontSize: "0.9rem", color: "#555" }}>
+                  Topic: {video.topic} <br />
+                  Duration: {video.duration} <br />
+                  Likes: {video.likes} | Views: {video.views}
+                </p>
+                <a
+                  href={video.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    textDecoration: "none",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    padding: "8px 12px",
+                    borderRadius: "4px",
+                    display: "inline-block",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Watch on YouTube
+                </a>
               </div>
             </div>
-          )
-        )
-      )}
+          ))
+        )}
+      </div>
+
+      {/* Horizontal Line betwenn recommended videos and the collaboarative related videos*/}
+      <hr style={{ borderTop: "2px solid #ccc", margin: "40px 0" }} />
+
+      {/* Collaborative Videos Title  */}
+      <h3
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+          fontWeight: "bold",
+        }}
+      >
+        Videos Watched by Users with Similar Interests
+      </h3>
+
+      {/* Collaborative Videos  */}
+      <div
+        className="collaborative-videos"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "20px",
+        }}
+      >
+        {collaborativeVideos.length === 0 ? (
+          <p style={{ textAlign: "center", width: "100%" }}>
+            No collaborative recommendations available.
+          </p>
+        ) : (
+          collaborativeVideos.map((video) => (
+            <div
+              key={video.id}
+              style={{
+                width: "320px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                borderRadius: "8px",
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{ cursor: "pointer", aspectRatio: "16 / 9" }}
+                onClick={() => window.open(video.url, "_blank")}
+              >
+                <iframe
+                  src={`https://www.youtube.com/embed/${video.id}`}
+                  title={video.title}
+                  allowFullScreen
+                  style={{ width: "100%", height: "180px", border: "none" }}
+                ></iframe>
+              </div>
+              <div style={{ padding: "12px" }}>
+                <h5 style={{ margin: "0 0 8px 0" }}>{video.title}</h5>
+                <p style={{ margin: "0 0 8px 0", fontSize: "0.9rem", color: "#555" }}>
+                  Topic: {video.topic} <br />
+                  Duration: {video.duration} <br />
+                  Likes: {video.likes} | Views: {video.views}
+                </p>
+                <a
+                  href={video.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    textDecoration: "none",
+                    backgroundColor: "#007bff",
+                    color: "#fff",
+                    padding: "8px 12px",
+                    borderRadius: "4px",
+                    display: "inline-block",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Watch on YouTube
+                </a>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
-}
+};
 
 export default Recommendation;
+
+
+
+
+
+

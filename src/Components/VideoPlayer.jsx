@@ -1,82 +1,98 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import React, { useState, useEffect } from "react";
+import { db, auth } from "../firebase";
+import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
+import videosData from "../data/mockVideos.json";
 
 const VideoPlayer = () => {
-  const { videoId } = useParams();
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [user, setUser] = useState(null);
 
-  // Sample metadata (You can update this dynamically later)
-  const sampleMetadata = {
-    title: "Example video",
-    topic: "web development",
-    url: `https://www.youtube.com/watch?v=${videoId}`,
-    duration: "PT5M10S",
-    likes: "1234567",
-    views: "123456"
-  };
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (usr) => {
-      if (usr) {
-        console.log('User signed in:', usr.uid);
-        setUser(usr);
-      } else {
-        console.log('No user signed in.');
-      }
+    const unsubscribe = auth.onAuthStateChanged((usr) => {
+      setUser(usr);
     });
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    const saveWatchedVideo = async () => {
-      if (!user || !videoId) return;
+  // Storing the watched video in Firestore under the collection called watchedVideos
+  const storeWatchedVideo = async (video) => {
+    if (!user) return;
+    try {
+      const watchedVideosRef = doc(db, "watchedVideos", user.email);
+      const docSnap = await getDoc(watchedVideosRef);
 
-      try {
-        const docRef = doc(db, 'watchedVideos', `${user.uid}_${videoId}`);
-        await setDoc(docRef, {
-          userId: user.uid,
-          videoId: videoId,
-          title: sampleMetadata.title,
-          topic: sampleMetadata.topic,
-          url: sampleMetadata.url,
-          duration: sampleMetadata.duration,
-          likes: sampleMetadata.likes,
-          views: sampleMetadata.views,
-          watchedAt: serverTimestamp(),
+      if (docSnap.exists()) {
+        const existingVideos = docSnap.data().videos || [];
+        const alreadyWatched = existingVideos.some((v) => v.id === video.id);
+        if (!alreadyWatched) {
+          await updateDoc(watchedVideosRef, {
+            videos: arrayUnion(video),
+          });
+        }
+      } else {
+        await setDoc(watchedVideosRef, {
+          videos: [video],
         });
-        console.log('✅ Video marked as watched.');
-      } catch (error) {
-        console.error('❌ Error saving watched video:', error);
       }
-    };
+    } catch (error) {
+      console.error("Error storing watched video:", error);
+    }
+  };
 
-    saveWatchedVideo();
-  }, [user, videoId]);
+  // When user clicks a video to play, then after the completiuon of the video, the data will be stored dynamically
+  const handleVideoSelect = (video) => {
+    setSelectedVideo(video);
+    storeWatchedVideo(video);
+  };
 
   return (
-    <div className="container my-4">
-      <h2>Now Playing</h2>
-      <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}`}
-          title="YouTube Video"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-          }}
-        ></iframe>
+    <div style={{ display: "flex" }}>
+      {/* Video list */}
+      <div style={{ width: "35%", overflowY: "auto", maxHeight: "80vh" }}>
+        <h2>Videos</h2>
+        {videosData.videos.map((video) => (
+          <div
+            key={video.id}
+            onClick={() => handleVideoSelect(video)}
+            style={{
+              cursor: "pointer",
+              marginBottom: "15px",
+              padding: "10px",
+              border: "1px solid #ccc",
+            }}
+          >
+            <h4>{video.title}</h4>
+            <p>Topic: {video.topic}</p>
+            <p>Duration: {video.duration}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Video player */}
+      <div style={{ width: "65%", padding: "10px" }}>
+        {selectedVideo ? (
+          <>
+            <h2>{selectedVideo.title}</h2>
+            <iframe
+              width="100%"
+              height="400px"
+              src={`https://www.youtube.com/embed/${selectedVideo.id}`}
+              title={selectedVideo.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+            <p>{selectedVideo.topic}</p>
+            <p>Likes: {selectedVideo.likes}</p>
+            <p>Views: {selectedVideo.views}</p>
+          </>
+        ) : (
+          <p>Please select a video to watch</p>
+        )}
       </div>
     </div>
   );
 };
 
 export default VideoPlayer;
+

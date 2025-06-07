@@ -5,7 +5,7 @@ import SignIn from './Components/SignIn.jsx';
 import Registration from './Components/Registration.jsx';
 import Questionnaire from './Components/Questionnaire.jsx';
 import Recommendation from './Components/Recommendation.jsx';
-import VideoPlayer from './Components/VideoPlayer.jsx'; // ✅ Add this
+import VideoPlayer from './Components/VideoPlayer.jsx'; 
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
       <Route path="/Registration" element={<Registration />} />
       <Route path="/Questionnaire" element={<Questionnaire />} />
       <Route path="/recommendations" element={<Recommendation />} />
-      <Route path="/video/:videoId" element={<VideoPlayer />} /> {/* ✅ Add this */}
+      <Route path="/video/:videoId" element={<VideoPlayer />} /> {/* Add this */}
     </Routes>
   );
 }

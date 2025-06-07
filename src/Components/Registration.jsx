@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
@@ -81,7 +80,7 @@ const Registration = () => {
             />
           </div>
 
-          {/* Confirm Password input is still rendered here, but not controlled by state or checked */}
+          {/* Check whether the Password input is still rendered here, but not controlled by state or checked */}
 
           <button type="submit" className="btn btn-success w-100 mb-2">
             Register
