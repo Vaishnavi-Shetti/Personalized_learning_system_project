@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebase"; // ✅ Import db
-import { doc, setDoc } from "firebase/firestore"; // ✅ Import Firestore functions
+import { auth, db } from "../firebase"; // Import db
+import { doc, setDoc } from "firebase/firestore"; // Import Firestore functions
 
 const Registration = () => {
   const navigate = useNavigate();

@@ -7,7 +7,7 @@ import Registration from './Components/Registration.jsx';
 import Questionnaire from './Components/Questionnaire.jsx';
 import Recommendation from './Components/Recommendation.jsx';
 import VideoPlayer from './Components/VideoPlayer.jsx';
-import UserProfile from './Components/UserProfile.jsx'; // ✅ Import UserProfile
+// import UserProfile from './Components/UserProfile.jsx'; // Import UserProfile
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
       <Route path="/Questionnaire" element={<Questionnaire />} />
       <Route path="/recommendations" element={<Recommendation />} />
       <Route path="/video/:videoId" element={<VideoPlayer />} />
-      <Route path="/UserProfile" element={<UserProfile />} /> {/* ✅ Profile Route */}
+      {/* <Route path="/UserProfile" element={<UserProfile />} /> Profile Route */}
     </Routes>
   );
 }
