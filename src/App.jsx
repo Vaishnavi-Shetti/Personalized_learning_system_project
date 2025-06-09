@@ -7,6 +7,8 @@ import Registration from './Components/Registration.jsx';
 import Questionnaire from './Components/Questionnaire.jsx';
 import Recommendation from './Components/Recommendation.jsx';
 import VideoPlayer from './Components/VideoPlayer.jsx';
+import VideoLearningPage from './Components/VideoLearningPage.jsx';
+
 // import UserProfile from './Components/UserProfile.jsx'; // Import UserProfile
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
       <Route path="/Registration" element={<Registration />} />
       <Route path="/Questionnaire" element={<Questionnaire />} />
       <Route path="/recommendations" element={<Recommendation />} />
+      <Route path="/video/:videoId" element={<VideoLearningPage />} />
+
       <Route path="/video/:videoId" element={<VideoPlayer />} />
       {/* <Route path="/UserProfile" element={<UserProfile />} /> Profile Route */}
     </Routes>
