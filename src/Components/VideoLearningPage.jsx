@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { doc, setDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
+import { getAuth } from 'firebase/auth';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 const API_KEY = import.meta.env.VITE_REACT_APP_GEMINI_API_KEY;
@@ -12,7 +13,8 @@ const VideoLearningPage = ({ video }) => {
   const { videoId: videoIdFromURL } = useParams();
   const videoId = video?.videoId || videoIdFromURL;
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   const [videoData, setVideoData] = useState(video || null);
   const [quiz, setQuiz] = useState([]);
@@ -24,18 +26,24 @@ const VideoLearningPage = ({ video }) => {
   useEffect(() => {
     const fetchVideo = async () => {
       if (video) return;
+
       try {
-        const docRef = doc(db, 'watchedVideos', videoId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setVideoData(docSnap.data());
-        } else {
-          setVideoData({ title: 'Not Found', description: 'Video content not available.' });
+        const watchedRef = doc(db, 'watchedVideos', user.uid);
+        const watchedSnap = await getDoc(watchedRef);
+        if (watchedSnap.exists()) {
+          const videos = watchedSnap.data().videos || [];
+          const matched = videos.find(v => v.videoId === videoId);
+          if (matched) {
+            setVideoData(matched);
+          } else {
+            setVideoData({ title: 'Not Found', description: 'Video not found in your watched list.' });
+          }
         }
       } catch (err) {
-        console.error('Error fetching video:', err);
+        console.error('Error fetching video data:', err);
       }
     };
+
     fetchVideo();
   }, [video, videoId]);
 
@@ -71,7 +79,6 @@ Respond in JSON format.
       const start = raw.indexOf('[');
       const end = raw.lastIndexOf(']') + 1;
       const jsonString = raw.slice(start, end);
-
       const parsed = JSON.parse(jsonString);
 
       const isValid = parsed.every(item => item.question && item.options && item.answer);
@@ -104,14 +111,36 @@ Respond in JSON format.
     setScore(correct);
     setSubmitted(true);
 
-    if (correct >= 3 && user) {
-      try {
-        const progressRef = doc(db, 'progress', user.uid);
-        await setDoc(progressRef, { completed: arrayUnion(videoId) }, { merge: true });
-        setTimeout(() => navigate('/dashboard'), 2500);
-      } catch (err) {
-        console.error('Failed to update progress:', err.message);
-      }
+    console.log("Submitting quiz...");
+    console.log("User:", user?.uid);
+    console.log("Video Title:", videoData?.title);
+    console.log("Correct Answers:", correct);
+
+    if (!user?.uid || !videoData?.title) {
+      console.warn("Missing user or video data. Aborting Firestore write.");
+      return;
+    }
+
+    try {
+      const progressRef = doc(db, 'progress', user.uid);
+      await setDoc(progressRef, { completed: arrayUnion(videoId) }, { merge: true });
+
+      const quizMarksRef = doc(db, 'quizMarks', user.uid);
+      await setDoc(
+        quizMarksRef,
+        {
+          quizzes: {
+            [videoData.title]: correct
+          }
+        },
+        { merge: true }
+      );
+
+      console.log("Quiz marks written successfully");
+
+     
+    } catch (err) {
+      console.error('Failed to update Firestore:', err.message);
     }
   };
 
@@ -129,7 +158,6 @@ Respond in JSON format.
     <div className="max-w-3xl mx-auto p-6 text-black">
       <h1 className="text-3xl font-bold mb-6">{videoData?.title}</h1>
 
-
       {!quiz.length && !loading && (
         <button
           onClick={handleMarkAsWatched}
@@ -140,10 +168,6 @@ Respond in JSON format.
       )}
 
       {loading && <p className="mt-4 text-yellow-400">Generating quiz... please wait.</p>}
-
-      {/* {!quiz.length && !loading && (
-        <p className="text-red-400 mt-4">No quiz generated. Please try again later.</p>
-      )} */}
 
       {quiz.length > 0 && (
         <div className="mt-6 space-y-6">
@@ -171,7 +195,7 @@ Respond in JSON format.
                           ? 'bg-blue-600'
                           : 'bg-slate-700 hover:bg-slate-600'}
                     `}
-                    >
+                  >
                     <input
                       type="radio"
                       name={`question-${idx}`}
@@ -180,15 +204,12 @@ Respond in JSON format.
                       disabled={submitted}
                       onChange={() => handleAnswer(idx, opt)}
                       className="h-5 w-5 text-blue-600 focus:ring-blue-500 checked:bg-blue-600"
-                      style={{ accentColor: 'rgb(37 99 235)' }} // Tailwind blue-600
+                      style={{ accentColor: 'rgb(37 99 235)' }}
                     />
-
                     <span>{opt}</span>
                   </label>
                 );
               })}
-
-
 
               {submitted && (
                 <p className={`mt-2 ${answers[idx] === q.answer ? 'text-green-400' : 'text-red-400'}`}>
@@ -202,7 +223,6 @@ Respond in JSON format.
                     )
                   }
                 </p>
-
               )}
             </div>
           ))}
@@ -210,7 +230,10 @@ Respond in JSON format.
           <div className="mt-6 flex gap-4 items-center">
             {!submitted ? (
               <button
-                onClick={handleSubmit}
+                onClick={() => {
+                  console.log("Submit button clicked");
+                  handleSubmit();
+                }}
                 className="bg-green-600 px-5 py-2 rounded"
               >
                 Submit Quiz

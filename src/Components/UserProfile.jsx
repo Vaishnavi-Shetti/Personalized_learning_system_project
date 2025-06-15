@@ -7,6 +7,7 @@ const UserProfile = () => {
   const [user, setUser] = useState(null);
   const [userData, setUserData] = useState(null);
   const [watchedVideos, setWatchedVideos] = useState([]);
+  const [quizMarks, setQuizMarks] = useState({}); // State to store quiz marks
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((usr) => {
@@ -20,15 +21,26 @@ const UserProfile = () => {
       if (!user) return;
 
       try {
+        // Fetch registration info
         const dataRef = doc(db, "userData", user.uid);
         const docSnap = await getDoc(dataRef);
         if (docSnap.exists()) setUserData(docSnap.data());
 
+        // Fetch watched videos
         const watchedRef = doc(db, "watchedVideos", user.uid);
         const watchedSnap = await getDoc(watchedRef);
         if (watchedSnap.exists()) {
           setWatchedVideos(watchedSnap.data().videos || []);
         }
+
+        // Fetch quiz marks
+        const quizMarksRef = doc(db, "quizMarks", user.uid);
+        const quizMarksSnap = await getDoc(quizMarksRef);
+        if (quizMarksSnap.exists()) {
+          const data = quizMarksSnap.data();
+          setQuizMarks(data.quizzes || {});
+        }
+
       } catch (err) {
         console.error("Error fetching user profile:", err);
       }
@@ -67,21 +79,29 @@ const UserProfile = () => {
           <p>You haven't watched any videos yet.</p>
         ) : (
           <div className="row">
-            {watchedVideos.map((video, idx) => (
-              <div key={video.id || idx} className="col-md-6 mb-4 video-card">
-                <div className="card">
-                  <iframe
-                    className="video-iframe"
-                    src={`https://www.youtube.com/embed/${video.videoId}`}
-                    title={video.title}
-                    allowFullScreen
-                  ></iframe>
-                  <div className="card-body">
-                    <h5 className="card-title">{video.title}</h5>
+            {watchedVideos.map((video, idx) => {
+              const score = quizMarks[video.title]; // Fetch score by video title
+              return (
+                <div key={video.id || idx} className="col-md-6 mb-4 video-card">
+                  <div className="card">
+                    <iframe
+                      className="video-iframe"
+                      src={`https://www.youtube.com/embed/${video.videoId}`}
+                      title={video.title}
+                      allowFullScreen
+                    ></iframe>
+                    <div className="card-body">
+                      <h5 className="card-title">{video.title}</h5>
+                      {score !== undefined && (
+                        <span className="badge bg-success mt-2">
+                          Quiz Score: {score} / 5
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

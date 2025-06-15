@@ -22,8 +22,9 @@ function Home() {
           <div className="col-md-6">
             <h1 className="display-5 hero-heading">Personalized Learning Platform</h1>
             <p className="hero-description">
-              Discover courses, videos, and learning paths tailored just for you.
-              Powered by your interests and advanced recommendations.
+              {/* Discover courses, videos, and learning paths tailored just for you.
+              Powered by your interests and advanced recommendations. */}
+              Learn your way, at your pace — personalized content tailored just for you.
             </p>
             <button
               className="btn btn-primary btn-lg hero-button"

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import "./Recommendation.css";
 import UserProfile from './UserProfile';
-import { FaUserCircle } from "react-icons/fa"; // 👤 FontAwesome User Icon
+import { FaUserCircle } from "react-icons/fa"; // FontAwesome User Icon
 import { useNavigate } from "react-router-dom"; // Add this
 import {
   collection,
@@ -49,7 +49,7 @@ const Recommendation = () => {
 
 
   const openQuizModal = (video) => {
-    console.log("📋 Opening quiz modal for video:", video);
+    console.log(" Opening quiz modal for video:", video);
     setSelectedVideoForQuiz(video);
     setShowQuizModal(true);
   };
@@ -162,7 +162,7 @@ const Recommendation = () => {
   }, [currentUserData, allUsersData]);
 
   const handleVideoWatch = async (video) => {
-    console.log("📹 handleVideoWatch() called with:", video);
+    console.log(" handleVideoWatch() called with:", video);
     if (!user) {
       alert("Please log in to mark videos as watched.");
       return;

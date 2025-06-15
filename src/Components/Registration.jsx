@@ -29,7 +29,7 @@ const Registration = () => {
 
       const user = userCredential.user;
 
-      // ✅ Save name and email to Firestore under userData collection
+      //  Save name and email to Firestore under userData collection
       await setDoc(doc(db, 'userData', user.uid), {
         name: formData.name,
         email: formData.email,
