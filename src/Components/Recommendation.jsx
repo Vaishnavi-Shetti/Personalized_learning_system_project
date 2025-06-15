@@ -164,9 +164,9 @@ const Recommendation = () => {
           await updateDoc(watchedVideosRef, {
             videos: arrayUnion(video),
           });
-          alert(`Marked "${video.title}" as watched.`);
+          //alert(`Marked "${video.title}" as watched.`);
         } else {
-          alert(`You already marked "${video.title}" as watched.`);
+          //alert(`You already marked "${video.title}" as watched.`);
         }
       } else {
         await setDoc(watchedVideosRef, {
@@ -176,7 +176,7 @@ const Recommendation = () => {
       }
     } catch (error) {
       console.error("Error marking video as watched:", error);
-      alert("Failed to mark video as watched.");
+      //alert("Failed to mark video as watched.");
     }
   };
 

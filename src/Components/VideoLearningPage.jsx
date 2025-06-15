@@ -35,9 +35,11 @@ const VideoLearningPage = () => {
   }, [videoId]);
 
   const generateQuiz = async () => {
-    if (!videoData) return;
+    if (!videoData){
+      console.warn('No video data available for quiz generation.');
+    return;} 
     setLoading(true);
-
+    console.log('Generating quiz for:', videoData.title);
     const prompt = `
 Generate 5 multiple choice questions from this content:
 """
@@ -59,6 +61,7 @@ Respond in JSON format.
       );
 
       const text = res.data.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log('Raw response:', text);
       const parsed = JSON.parse(text.slice(text.indexOf('['), text.lastIndexOf(']') + 1));
       setQuiz(parsed);
     } catch (err) {
@@ -72,6 +75,12 @@ Respond in JSON format.
     if (submitted) return;
     setAnswers((prev) => ({ ...prev, [idx]: option }));
   };
+  {!quiz.length && !loading && (
+  <p className="text-red-400 mt-4">No quiz generated. Please try again later.</p>
+)}
+{loading && <p className="mt-4 text-yellow-400">Generating quiz... please wait.</p>}
+
+
 
   const handleSubmit = async () => {
     let correct = 0;
@@ -101,7 +110,6 @@ Respond in JSON format.
 
   // 👉 This function will be triggered when "Mark as Watched" is clicked
   const handleMarkAsWatched = () => {
-    alert('Be ready to take quiz!');
     generateQuiz();
   };
 
