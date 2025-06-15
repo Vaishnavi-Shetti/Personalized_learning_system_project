@@ -1,4 +1,3 @@
-// src/pages/UserProfile.js
 import React, { useEffect, useState } from "react";
 import { db, auth } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -25,7 +24,7 @@ const UserProfile = () => {
         const docSnap = await getDoc(dataRef);
         if (docSnap.exists()) setUserData(docSnap.data());
 
-        const watchedRef = doc(db, "watchedVideos", user.email);
+        const watchedRef = doc(db, "watchedVideos", user.uid);
         const watchedSnap = await getDoc(watchedRef);
         if (watchedSnap.exists()) {
           setWatchedVideos(watchedSnap.data().videos || []);
@@ -41,8 +40,10 @@ const UserProfile = () => {
   if (!user) return <p>Loading user data...</p>;
 
   return (
-  <div className="profile-container">
-    <h2 className="profile-header">👤 User Profile</h2>
+    <div className="profile-container">
+      <h2 className="profile-header">👤 User Profile</h2>
+
+      {/* Registration Info */}
       <div className="card p-4 mb-5 shadow">
         <h4>📝 Registration Info</h4>
         {userData ? (
@@ -59,33 +60,28 @@ const UserProfile = () => {
         )}
       </div>
 
+      {/* Watched Videos */}
       <div className="card p-4 shadow">
         <h4>📺 Watched Videos</h4>
         {watchedVideos.length === 0 ? (
           <p>You haven't watched any videos yet.</p>
         ) : (
           <div className="row">
-            {watchedVideos.map((video) => (
-          <div key={video.id} className="col-md-6 mb-4 video-card">
-            <div className="card">
-              <iframe
-                className="video-iframe"
-                src={`https://www.youtube.com/embed/${video.id}`}
-                title={video.title}
-                allowFullScreen
-              ></iframe>
-              <div className="card-body">
-                <h5 className="card-title">{video.title}</h5>
-                <p className="card-text">
-                  Topic: {video.topic} <br />
-                  Duration: {video.duration} <br />
-                  Likes: {video.likes} | Views: {video.views}
-                </p>
+            {watchedVideos.map((video, idx) => (
+              <div key={video.id || idx} className="col-md-6 mb-4 video-card">
+                <div className="card">
+                  <iframe
+                    className="video-iframe"
+                    src={`https://www.youtube.com/embed/${video.videoId}`}
+                    title={video.title}
+                    allowFullScreen
+                  ></iframe>
+                  <div className="card-body">
+                    <h5 className="card-title">{video.title}</h5>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
-
+            ))}
           </div>
         )}
       </div>

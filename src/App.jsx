@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Components/Home.jsx';
@@ -8,8 +7,7 @@ import Questionnaire from './Components/Questionnaire.jsx';
 import Recommendation from './Components/Recommendation.jsx';
 import VideoPlayer from './Components/VideoPlayer.jsx';
 import VideoLearningPage from './Components/VideoLearningPage.jsx';
-
-// import UserProfile from './Components/UserProfile.jsx'; // Import UserProfile
+import UserProfile from './Components/UserProfile';
 
 function App() {
   return (
@@ -19,10 +17,11 @@ function App() {
       <Route path="/Registration" element={<Registration />} />
       <Route path="/Questionnaire" element={<Questionnaire />} />
       <Route path="/recommendations" element={<Recommendation />} />
-      <Route path="/video/:videoId" element={<VideoLearningPage />} />
-
+      <Route path="/learn/:videoId" element={<VideoLearningPage />} />
       <Route path="/video/:videoId" element={<VideoPlayer />} />
-      {/* <Route path="/UserProfile" element={<UserProfile />} /> Profile Route */}
+      <Route path="/profile" element={<UserProfile />} />
+
+
     </Routes>
   );
 }

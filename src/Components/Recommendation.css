@@ -1,3 +1,22 @@
+.recommendation-page-container {
+  position: relative;
+}
+
+.profile-button {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 999;
+}
 
 .container {
   max-width: 1200px;

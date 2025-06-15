@@ -1,6 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import "./Recommendation.css";
-
+import UserProfile from './UserProfile';
+import { FaUserCircle } from "react-icons/fa"; // 👤 FontAwesome User Icon
+import { useNavigate } from "react-router-dom"; // Add this
 import {
   collection,
   doc,
@@ -12,9 +15,13 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import mockVideos from "../data/mockVideos.json"; // my JSON format
+import mockVideos from "../data/mockVideos.json";
+import VideoLearningPage from "./VideoLearningPage";
+import Modal from "react-modal";
 
-// Helper unction to get all user interests as lowercase trimmed strings
+// Set app element for accessibility (only once, typically in App.js)
+Modal.setAppElement("#root");
+
 function getUserInterestArray(userData) {
   if (!userData) return [];
   let interests = [];
@@ -34,8 +41,24 @@ const Recommendation = () => {
   const [recommendedVideos, setRecommendedVideos] = useState([]);
   const [collaborativeVideos, setCollaborativeVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // Add this line to enable navigation
 
-  // Tracking auth state
+
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [selectedVideoForQuiz, setSelectedVideoForQuiz] = useState(null);
+
+
+  const openQuizModal = (video) => {
+    console.log("📋 Opening quiz modal for video:", video);
+    setSelectedVideoForQuiz(video);
+    setShowQuizModal(true);
+  };
+
+  const closeQuizModal = () => {
+    setShowQuizModal(false);
+    setSelectedVideoForQuiz(null);
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (usr) => {
       setUser(usr);
@@ -43,7 +66,6 @@ const Recommendation = () => {
     return () => unsubscribe();
   }, []);
 
-  // Fetch current user data
   useEffect(() => {
     if (!user) return;
     const fetchCurrentUserData = async () => {
@@ -55,7 +77,6 @@ const Recommendation = () => {
     fetchCurrentUserData();
   }, [user]);
 
-  // Fetch all other users data
   useEffect(() => {
     if (!user) return;
     const fetchAllUsers = async () => {
@@ -69,7 +90,6 @@ const Recommendation = () => {
     fetchAllUsers();
   }, [user]);
 
-  // Fetch watched videos for a user from Firestore
   const fetchWatchedVideosForUser = async (userId) => {
     const docRef = doc(db, "watchedVideos", userId);
     const docSnap = await getDoc(docRef);
@@ -80,7 +100,6 @@ const Recommendation = () => {
     return [];
   };
 
-  // Generate recommendations based on current user and others
   useEffect(() => {
     if (!currentUserData || allUsersData.length === 0) return;
 
@@ -90,7 +109,6 @@ const Recommendation = () => {
       const userTopics = (currentUserData.topics || []).map((t) => t.toLowerCase().trim());
       const userLanguages = (currentUserData.languages || []).map((l) => l.toLowerCase().trim());
 
-      // Content-based filtering (match at least one topic OR language)
       const contentBasedVideos = mockVideos.filter((video) => {
         if (!video.videoId) return false;
 
@@ -109,7 +127,6 @@ const Recommendation = () => {
         return matchesTopic || matchesLanguage;
       });
 
-      // Collaborative filtering: find similar users by interest overlap
       const userInterests = getUserInterestArray(currentUserData);
       const similarUsers = allUsersData.filter((otherUser) => {
         const otherInterests = getUserInterestArray(otherUser);
@@ -119,7 +136,6 @@ const Recommendation = () => {
         return similarity >= 0.3;
       });
 
-      // Fetch videos watched by similar users
       const simUsersWatchedVideosList = await Promise.all(
         similarUsers.map(async (simUser) => {
           const vids = await fetchWatchedVideosForUser(simUser.id);
@@ -127,7 +143,6 @@ const Recommendation = () => {
         })
       );
 
-      // Collect unique collaborative videos (excluding those already in content-based)
       const contentIds = new Set(contentBasedVideos.map((v) => v.id));
       const collabVideosMap = new Map();
       simUsersWatchedVideosList.forEach(({ videos }) => {
@@ -146,8 +161,8 @@ const Recommendation = () => {
     generateRecommendations();
   }, [currentUserData, allUsersData]);
 
-  // Mark a video as watched
   const handleVideoWatch = async (video) => {
+    console.log("📹 handleVideoWatch() called with:", video);
     if (!user) {
       alert("Please log in to mark videos as watched.");
       return;
@@ -164,23 +179,21 @@ const Recommendation = () => {
           await updateDoc(watchedVideosRef, {
             videos: arrayUnion(video),
           });
-          //alert(`Marked "${video.title}" as watched.`);
-        } else {
-          //alert(`You already marked "${video.title}" as watched.`);
+          alert(`Marked "${video.title}" as watched.`);
+          openQuizModal(video);
         }
       } else {
         await setDoc(watchedVideosRef, {
           videos: [video],
         });
         alert(`Marked "${video.title}" as watched.`);
+        openQuizModal(video);
       }
     } catch (error) {
       console.error("Error marking video as watched:", error);
-      //alert("Failed to mark video as watched.");
     }
   };
 
-  // Render videos UI
   const renderVideos = (videos) =>
     videos
       .filter((video) => video.videoId && video.videoId.trim() !== "")
@@ -216,7 +229,12 @@ const Recommendation = () => {
             >
               Watch on YouTube
             </a>
-            <button onClick={() => handleVideoWatch(video)} className="btn btn-success">
+            <button
+              onClick={() => {
+                handleVideoWatch(video);
+              }}
+              className="btn btn-success"
+            >
               Mark as Watched
             </button>
           </div>
@@ -228,8 +246,34 @@ const Recommendation = () => {
   if (!currentUserData)
     return <div>Please complete your questionnaire to get personalized recommendations.</div>;
 
-  return (
-    <div className="container my-4">
+ 
+    return (
+  <div style={{ position: "relative" }}>
+    <button
+      onClick={() => navigate("/profile")}
+      style={{
+        position: "fixed",
+        top: "20px",
+        right: "30px",
+        display: "flex",
+        alignItems: "center",
+        backgroundColor: "#007bff",
+        color: "#fff",
+        padding: "8px 16px",
+        borderRadius: "8px",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "16px",
+        zIndex: 1000,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
+      }}
+    >
+      <FaUserCircle style={{ marginRight: "8px", fontSize: "20px" }} />
+      My Profile
+    </button>
+
+
+
       <h2 style={{ textAlign: "center", fontWeight: "bold", marginBottom: "30px" }}>
         Recommended Videos For You
       </h2>
@@ -263,8 +307,36 @@ const Recommendation = () => {
           renderVideos(collaborativeVideos)
         )}
       </div>
+
+      <Modal
+        isOpen={showQuizModal}
+        onRequestClose={closeQuizModal}
+        contentLabel="Quiz Modal"
+        style={{
+          content: {
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            marginRight: "-50%",
+            transform: "translate(-50%, -50%)",
+            width: "90%",
+            maxWidth: "800px",
+            maxHeight: "90vh",
+            overflow: "auto",
+            borderRadius: "10px",
+            padding: "20px",
+          },
+        }}
+      >
+        <button onClick={closeQuizModal} style={{ float: "right" }}>
+          Close
+        </button>
+        {selectedVideoForQuiz && <VideoLearningPage video={selectedVideoForQuiz} />}
+      </Modal>
     </div>
   );
 };
 
 export default Recommendation;
+
