@@ -138,7 +138,7 @@ Respond in JSON format.
 
       console.log("Quiz marks written successfully");
 
-     
+
     } catch (err) {
       console.error('Failed to update Firestore:', err.message);
     }
@@ -213,15 +213,33 @@ Respond in JSON format.
 
               {submitted && (
                 <p className={`mt-2 ${answers[idx] === q.answer ? 'text-green-400' : 'text-red-400'}`}>
-                  {answers[idx] === q.answer
+                  {/* {answers[idx] === q.answer
                     ? 'Correct!'
                     : (
+                      // <>
+                      //   Wrong.<br />
+                      //   Correct answer: {q.answer}
+                      // </>
                       <>
-                        Wrong.<br />
-                        Correct answer: {q.answer}
+                        <span style={{ color: "#D32F2F", fontWeight: "bold" }}>Wrong answer.</span><br />
+                        <span style={{ color: "#388E3C", fontWeight: "bold" }}>
+                          Correct answer: {q.answer}
+                        </span>
                       </>
+
                     )
-                  }
+                  } */}
+                  {answers[idx] === q.answer ? (
+                    <span style={{ color: "#388E3C", fontWeight: "bold" }}>Correct!</span>
+                  ) : (
+                    <>
+                      <span style={{ color: "#D32F2F", fontWeight: "bold" }}>Wrong answer.</span><br />
+                      <span style={{ color: "#388E3C", fontWeight: "bold" }}>
+                        Correct answer: {q.answer}
+                      </span>
+                    </>
+                  )}
+
                 </p>
               )}
             </div>
