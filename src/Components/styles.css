@@ -1,0 +1,105 @@
+/* Common glowing button for Submit, Retry, Take Quiz */
+.quiz-action-button {
+  background: #6f00ff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 0 12px #9d00ff;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 45px;
+  white-space: nowrap;
+  max-width: fit-content;
+}
+
+.quiz-action-button:hover {
+  background: #5200c7;
+  box-shadow: 0 0 20px #d58fff;
+}
+
+/* Centering wrapper for the buttons */
+.button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Close button top right */
+.close-button-wrapper {
+  position: relative;
+  height: 0;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #6f00ff;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 0 12px #9d00ff;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  background: #5200c7;
+  box-shadow: 0 0 20px #d58fff;
+}
+
+/* Optional: quiz option style */
+.quiz-option {
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #a855f7;
+  background-color: #120227;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+.glow-button {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+
+  background: #6f00ff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 0 12px #9d00ff;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 45px;
+  white-space: nowrap;
+  max-width: fit-content;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+/* Push down surrounding content if overlap happens */
+.glow-button ~ *:first-child {
+  margin-top: 60px;
+}
+
+.glow-button:hover {
+  background: #5200c7;
+  box-shadow: 0 0 20px #d58fff;
+}
+

@@ -8,45 +8,52 @@ body {
   overflow: hidden;
 }
 
-.signin-container {
+.registration-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+
+  /* NEW horizontal padding for left & right spacing */
+  padding-left: 20%;
+  padding-right: 20%;
+  box-sizing: border-box;
 }
 
-.signin-card {
+
+.registration-card {
   display: flex;
   width: 90%;
   max-width: 950px;
   height: 550px;
   border-radius: 20px;
-  background: linear-gradient(to right, #0a0618 50%, #6b2bf2 50%);
+background: #000000; /* or fully black base */
   box-shadow: 0 0 25px rgba(155, 0, 255, 0.8);
   overflow: hidden;
   border: 2px solid #a041f0;
 }
 
-.signin-left {
+
+.registration-left {
   width: 50%;
   padding: 30px;
   color: white;
 }
 
-.signin-left .form-heading {
+.registration-left .form-heading {
   margin-bottom: 20px;
   font-size: 26px;
   color: white;
   font-family: 'Varela Round', sans-serif;
 }
 
-.signin-left label {
+.registration-left label {
   display: block;
   margin-top: 15px;
   font-weight: bold;
 }
 
-.signin-left input {
+.registration-left input {
   width: 100%;
   padding: 10px;
   background-color: transparent;
@@ -57,13 +64,13 @@ body {
   font-size: 14px;
 }
 
-.signin-left input:focus {
+.registration-left input:focus {
   outline: none;
   border-color: #c783ff;
   box-shadow: 0 0 10px #a041f0;
 }
 
-.signin-left button {
+.registration-left button {
   margin-top: 25px;
   width: 100%;
   padding: 12px;
@@ -77,24 +84,24 @@ body {
   box-shadow: 0 0 15px #a041f0;
 }
 
-.signin-left button:hover {
+.registration-left button:hover {
   background-color: #821ff0;
   box-shadow: 0 0 25px #b56bfa;
 }
 
-.register-link {
+.signin-link {
   margin-top: 15px;
   font-size: 14px;
 }
 
-.register-link a {
+.signin-link a {
   color: #a041f0;
   text-decoration: none;
 }
 
-.signin-right {
+.registration-right {
   width: 50%;
-  background: linear-gradient(to bottom right, #431578,#531cb3);
+  background: linear-gradient(to bottom right, #431578, #531cb3);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -104,11 +111,11 @@ body {
   text-align: center;
 }
 
-.signin-right h1 {
+.registration-right h1 {
   font-size: 32px;
   margin-bottom: 15px;
 }
 
-.signin-right p {
+.registration-right p {
   font-size: 16px;
 }

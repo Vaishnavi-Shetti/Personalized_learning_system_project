@@ -1,41 +1,48 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import heroImage from '../assets/heroImage.png';
-import Navbar from './Navbar.jsx';
-import './Home.css'; 
+import heroImage from '../assets/heroImage1.png';
+import './Home.css';
 
 function Home() {
   const navigate = useNavigate();
 
   return (
-    <>
-      <Navbar />
-      <div className="container hero-container">
-        <div className="row align-items-center">
-          <div className="col-md-6 text-center mb-4 mb-md-0">
-            <img
-              src={heroImage}
-              alt="Developer illustration"
-              className="img-fluid hero-image"
-            />
-          </div>
-          <div className="col-md-6">
-            <h1 className="display-5 hero-heading">Personalized Learning Platform</h1>
-            <p className="hero-description">
-              {/* Discover courses, videos, and learning paths tailored just for you.
-              Powered by your interests and advanced recommendations. */}
-              Learn your way, at your pace — personalized content tailored just for you.
-            </p>
-            <button
-              className="btn btn-primary btn-lg hero-button"
-              onClick={() => navigate('/signin')}
-            >
-              Get Started
-            </button>
-          </div>
+    <div className="home">
+      <header className="navbar">
+        <div className="logo">LearnX</div>
+        <nav>
+          <ul className="nav-links">
+            <li onClick={() => navigate('/login')} className="nav-button">Login</li>
+            <li onClick={() => navigate('/signin')} className="nav-button">Sign In</li>
+          </ul>
+        </nav>
+      </header>
+
+      <section className="hero">
+        <div className="hero-text">
+          <h1 className="main-heading">
+            Personalized <br /> Learning Platform
+          </h1>
+          <p className="subheading">
+            Learn your way, at your pace — tailored courses & videos, intelligently recommended.
+          </p>
+          <button className="hero-button" onClick={() => navigate('/signin')}>
+            Get Started
+          </button>
         </div>
-      </div>
-    </>
+        <div className="hero-image">
+          <img src={heroImage} alt="Developer" />
+        </div>
+      </section>
+
+      <footer className="footer-icons">
+        <div className="socials">
+          <i className="fab fa-facebook-f" />
+          <i className="fab fa-instagram" />
+          <i className="fab fa-twitter" />
+        </div>
+      </footer>
+    </div>
   );
 }
 

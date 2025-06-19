@@ -1,65 +1,92 @@
-/* Questionnaire.css */
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
 
-.container {
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0a0618;
+  font-family: 'Varela Round', sans-serif;
+  overflow-x: hidden;
+  color: white;
+}
+
+.form-container {
+  margin-top: -10px; /* Adjust this as needed to move it closer to the heading */
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 40px 20px;
-  min-height: 100vh;
-  background-color: #f4f6f9;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
-.questionnaire-card {
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-  width: 100%;
-  max-width: 600px;
-}
-
-.questionnaire-card h3 {
+.ready-heading {
   text-align: center;
-  margin-bottom: 25px;
-  color: #333;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.form-section {
+  margin-top: 30px;
   margin-bottom: 20px;
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #ffffff;
 }
-
-.form-section strong {
-  display: block;
-  margin-bottom: 10px;
-  color: #444;
-  font-size: 16px;
-}
-
-.form-check {
-  margin-bottom: 8px;
-}
-
-.form-check-label {
-  margin-left: 6px;
-  font-size: 14px;
-  color: #333;
-}
-
-button[type="submit"] {
-  margin-top: 25px;
+.form-right {
   width: 100%;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 12px;
-  font-size: 16px;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
+  text-align: center;
+  margin-top: 20px;
 }
 
-button[type="submit"]:hover {
-  background-color: #0056b3;
+
+.form-right h1 {
+  font-size: 32px;
+  margin-bottom: 5px;
+  color: #ffffff;
+  text-shadow: 0 0 8px #a041f0;
+}
+
+.form-right p {
+  font-size: 16px;
+  color: #d6c9f7;
+}
+
+.form-card {
+  width: 90%;
+  max-width: 950px;
+  height: 550px;
+  background-color: #0a0618;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(155, 0, 255, 0.8);
+  padding: 30px;
+  color: white;
+  overflow-y: auto;
+  border: 2px solid #a041f0;
+}
+
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-weight: bold;
+}
+
+.options label {
+  display: block;
+  margin-left: 15px;
+  font-weight: normal;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: #a041f0; /* ✅ Purple tick color */
+  margin-right: 10px;
+}
+
+button {
+  margin-top: 20px;
+  width: 100%;
+  background-color: #a041f0;
+  border: none;
+  padding: 10px 0;
+  color: white;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 0 10px #a041f0;
+}
+
+button:hover {
+  background-color: #821ff0;
+  box-shadow: 0 0 20px #b56bfa;
 }

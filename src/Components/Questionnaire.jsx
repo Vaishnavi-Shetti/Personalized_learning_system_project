@@ -79,10 +79,9 @@ function Questionnaire() {
     };
 
     try {
-      await setDoc(doc(db, 'userData', user.uid), data, { merge: true }); //Save with user id
+      await setDoc(doc(db, 'userData', user.uid), data, { merge: true });
       console.log('Saved to Firestore:', data);
 
-      // Navigate to recommendations 
       navigate('/recommendations', {
         state: {
           selectedTopics,
@@ -96,85 +95,164 @@ function Questionnaire() {
       alert('Failed to save preferences. Try again.');
     }
   };
+return (
+  <>
+  {/* Top Centered Heading */}
+  <div className="ready-heading">
+    <h1>Ready to Learn?</h1>
+  </div>
 
-  return (
-    <div className="container">
-      <div className="questionnaire-card">
-        <h3 className="text-center mb-4">Tell Us About Your Learning Preferences</h3>
+  {/* Slightly Elevated Questions Container */}
+  <div className="form-container">
+    <div className="form-card">
+      <div className="form-left">
+        <h4>Tell us what you love — we’ll tailor your journey.</h4>
+
         <form onSubmit={handleSubmit}>
-          <strong>1. Interests:</strong>
-          {topics.map((topic, index) => (
-            <div className="form-check mb-2" key={index}>
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value={topic}
-                id={`topic-${index}`}
-                onChange={handleTopicChange}
-              />
-              <label className="form-check-label" htmlFor={`topic-${index}`}>
+          <label>1. Interests:</label>
+          <div className="options">
+            {topics.map((topic, index) => (
+              <label key={index}>
+                <input
+                  type="checkbox"
+                  value={topic}
+                  onChange={handleTopicChange}
+                />
                 {topic}
               </label>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <strong className="mt-3 d-block">2. Skill Level:</strong>
-          {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-            <div className="form-check" key={level}>
-              <input
-                className="form-check-input"
-                type="radio"
-                name="skillLevel"
-                value={level}
-                onChange={(e) => setSkillLevel(e.target.value)}
-                id={`skill-${level}`}
-              />
-              <label className="form-check-label" htmlFor={`skill-${level}`}>
+          <label>2. Skill Level:</label>
+          <div className="options">
+            {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
+              <label key={level}>
+                <input
+                  type="radio"
+                  name="skillLevel"
+                  value={level}
+                  onChange={(e) => setSkillLevel(e.target.value)}
+                />
                 {level}
               </label>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <strong className="mt-3 d-block">3. Preferred Content Type:</strong>
-          {['Projects', 'Tutorials', 'Conceptual Videos'].map((type) => (
-            <div className="form-check" key={type}>
-              <input
-                className="form-check-input"
-                type="radio"
-                name="contentType"
-                value={type}
-                onChange={(e) => setContentType(e.target.value)}
-                id={`content-${type}`}
-              />
-              <label className="form-check-label" htmlFor={`content-${type}`}>
+          <label>3. Preferred Content Type:</label>
+          <div className="options">
+            {['Projects', 'Tutorials', 'Conceptual Videos'].map((type) => (
+              <label key={type}>
+                <input
+                  type="radio"
+                  name="contentType"
+                  value={type}
+                  onChange={(e) => setContentType(e.target.value)}
+                />
                 {type}
               </label>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <strong className="mt-3 d-block">4. Preferred Programming Languages:</strong>
-          {programmingLanguages.map((lang, index) => (
-            <div className="form-check mb-1" key={index}>
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value={lang}
-                id={`lang-${index}`}
-                onChange={handleLanguageChange}
-              />
-              <label className="form-check-label" htmlFor={`lang-${index}`}>
+          <label>4. Preferred Programming Languages:</label>
+          <div className="options">
+            {programmingLanguages.map((lang, index) => (
+              <label key={index}>
+                <input
+                  type="checkbox"
+                  value={lang}
+                  onChange={handleLanguageChange}
+                />
                 {lang}
               </label>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <button type="submit" className="btn btn-primary w-100 mt-4">
-            Get Recommendations
-          </button>
+          <button type="submit">Get Recommendations</button>
         </form>
       </div>
     </div>
-  );
+  </div>
+</>
+);
 }
-
 export default Questionnaire;
+//   return (
+    
+//     <div className="form-container">
+//       <div className="form-card">
+//         <div className="form-left">
+//           <div className="form-right">
+//           <h1>Ready to Learn?</h1>
+//         </div>
+//         <h4>Tell us what you love — we’ll tailor your journey.</h4>
+
+//           <form onSubmit={handleSubmit}>
+//             <label>1. Interests:</label>
+//             <div className="options">
+//               {topics.map((topic, index) => (
+//                 <label key={index}>
+//                   <input
+//                     type="checkbox"
+//                     value={topic}
+//                     onChange={handleTopicChange}
+//                   />
+//                   {topic}
+//                 </label>
+//               ))}
+//             </div>
+
+//             <label>2. Skill Level:</label>
+//             <div className="options">
+//               {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
+//                 <label key={level}>
+//                   <input
+//                     type="radio"
+//                     name="skillLevel"
+//                     value={level}
+//                     onChange={(e) => setSkillLevel(e.target.value)}
+//                   />
+//                   {level}
+//                 </label>
+//               ))}
+//             </div>
+
+//             <label>3. Preferred Content Type:</label>
+//             <div className="options">
+//               {['Projects', 'Tutorials', 'Conceptual Videos'].map((type) => (
+//                 <label key={type}>
+//                   <input
+//                     type="radio"
+//                     name="contentType"
+//                     value={type}
+//                     onChange={(e) => setContentType(e.target.value)}
+//                   />
+//                   {type}
+//                 </label>
+//               ))}
+//             </div>
+
+//             <label>4. Preferred Programming Languages:</label>
+//             <div className="options">
+//               {programmingLanguages.map((lang, index) => (
+//                 <label key={index}>
+//                   <input
+//                     type="checkbox"
+//                     value={lang}
+//                     onChange={handleLanguageChange}
+//                   />
+//                   {lang}
+//                 </label>
+//               ))}
+//             </div>
+
+//             <button type="submit">Get Recommendations</button>
+//           </form>
+//         </div>
+//         {/* <div className="form-right">
+//           <h1>Ready to Learn?</h1>
+//         </div> */}
+//       </div>
+//     </div>
+//   );
+// }
+
